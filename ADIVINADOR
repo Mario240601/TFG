@@ -1,0 +1,94 @@
+'''
+    importamos los módulos necesarios para trabajar con archivos binarios ademas de verificar si un archivo existe en la ruta.
+
+     permite serializar y deserializar objetos en archivos binarios.
+      
+     dump() se utiliza para escribir un objeto en un archivo binario
+     
+     load() se utiliza para leer un objeto desde un archivo binario.
+'''
+from pickle import dump, load
+
+'''
+  os.path  proporciona funciones para trabajar con rutas de archivos y directorios.
+  
+  isfile() verifica si un archivo existe en la ruta especificada.
+'''
+
+from os.path import isfile
+
+
+class Nodo:
+    def __init__ (self, valor):
+        self.valor = valor
+        self.izquierda = None
+        self.derecha = None
+
+
+def escribe_dato(fichero, dato):
+    '''
+    Escribe cualquier dato en el archivo binario indicado por 
+    nombre_archivo.
+    '''
+    with open(fichero,'wb') as archivo:
+        dump(dato, archivo)
+
+
+def lee_dato(archivo):
+    '''
+    Lee cualquier dato contenido en el archivo binario indicado por
+    nombre_archivo.
+    '''
+    with open(archivo,'rb') as archivo:
+        return load(archivo)
+
+
+def obtener_respuesta(pregunta):
+    respuesta = input(pregunta + " (s/n): ")
+    while respuesta.lower() != "s" and respuesta.lower() != "n":
+        respuesta = input("Respuesta inválida. " + pregunta + " (s/n): ")
+    return respuesta.lower()
+
+
+def adivinar_animal(nodo):
+    if nodo.izquierda is None and nodo.derecha is None:
+        respuesta = obtener_respuesta("¿Es un(a) " + nodo.valor + "?")
+        if respuesta == "s":
+            print("BIEN,ACERTE!!!")
+        else:
+            nuevo_animal = input("No sé qué animal es. ¿En qué animal estabas pensando?: ")
+            pregunta = input("Escribe una pregunta que sea verdadera para un/a " + nuevo_animal +
+                             " pero falsa para un/a " + nodo.valor + ": ")
+            respuesta_nueva_pregunta = obtener_respuesta("Para  un/a  " + nuevo_animal + ", " + pregunta)
+            if respuesta_nueva_pregunta == "s":
+                nodo.izquierda = Nodo(nuevo_animal)
+                nodo.derecha = Nodo(nodo.valor)
+            else:
+                nodo.izquierda = Nodo(nodo.valor)
+                nodo.derecha = Nodo(nuevo_animal)
+            nodo.valor = pregunta
+    else:
+        respuesta = obtener_respuesta(nodo.valor)
+        if respuesta == "s":
+            adivinar_animal(nodo.izquierda)
+        else:
+            adivinar_animal(nodo.derecha)
+            
+
+if isfile('arbol.bin'):
+    arbol = lee_dato('arbol.bin')
+else:
+    arbol = Nodo("vive en el agua?")
+    arbol = Nodo("tiene pelo?")
+    arbol.izquierda = Nodo("perro")
+    arbol.derecha = Nodo("pez")
+
+adivinar_animal(arbol)
+
+jugar_nuevamente = obtener_respuesta("¿Deseas jugar otra vez?")
+while jugar_nuevamente == "s":
+    adivinar_animal(arbol)
+    jugar_nuevamente = obtener_respuesta("¿Deseas jugar otra vez?")
+
+escribe_dato('arbol.bin', arbol)
+print("Adiós.")
